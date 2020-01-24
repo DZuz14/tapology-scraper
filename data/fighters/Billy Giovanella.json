@@ -1,0 +1,320 @@
+{
+  "name": "",
+  "nickname": "\"WOLVERINE\"",
+  "age": "Weight Class: Flyweight | Last Weigh-In: 124.0 lbs",
+  "heightReach": "Height: 5'8\" (173cm) | Reach: 69.0\" (175cm)",
+  "country": "Born: United States",
+  "record": "9-9-0",
+  "fights": {
+    "pro": [
+      {
+        "mainInfo": "Loss · Rear Naked Choke · 3:13 · R1",
+        "event": "CES 53: Gravely vs. Nordby",
+        "date": "2018.11.02",
+        "record": "9-8-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Punches · 0:20 · R3",
+        "event": "CES NY 1",
+        "date": "2018.05.04",
+        "record": "9-7-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Decision · Unanimous",
+        "event": "Bellator 185",
+        "date": "2017.10.20",
+        "record": "9-6-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2017.05.12",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2017.04.21",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Knees · 4:12 · R1",
+        "event": "Global Proving Ground 27",
+        "date": "2016.12.17",
+        "record": "9-5-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Rear Naked Choke",
+        "event": "Reality Fighting",
+        "date": "2016.05.28",
+        "record": "9-4-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Triangle Choke · 2:19 · R1",
+        "event": "Bellator 144",
+        "date": "2015.10.23",
+        "record": "8-4-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Decision · Unanimous",
+        "event": "Bellator 140",
+        "date": "2015.07.17",
+        "record": "8-3-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2015.05.09",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · KO/TKO · 4:59 · R2",
+        "event": "Cage Titans 22",
+        "date": "2015.01.24",
+        "record": "8-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · KO/TKO",
+        "event": "Cage Titans 21",
+        "date": "2014.11.01",
+        "record": "7-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Triangle Choke · 3:05 · R2",
+        "event": "CES 25",
+        "date": "2014.08.08",
+        "record": "6-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2014.08.08",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2014.06.20",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Triangle Choke · 1:13 · R1",
+        "event": "Cage Titans 17",
+        "date": "2014.01.25",
+        "record": "5-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2014.01.25",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Submission · 0:44 · R1",
+        "event": "CFX 23: Summer Slam",
+        "date": "2013.09.14",
+        "record": "4-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2013.07.26",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · KO/TKO · 4:11 · R1",
+        "event": "AFO: Summer Brawl 6",
+        "date": "2013.06.29",
+        "record": "4-1-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Triangle Choke · 3:21 · R2",
+        "event": "CFX 22: Winter Blast",
+        "date": "2013.02.23",
+        "record": "4-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Strikes · 1:53 · R1",
+        "event": "Cage Titans 12",
+        "date": "2012.11.10",
+        "record": "3-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2012.11.10",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Decision · Unanimous",
+        "event": "Warrior Nation XFA 4",
+        "date": "2012.08.24",
+        "record": "2-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Punches · 1:41 · R2",
+        "event": "CES 12: Far Beyond Driven",
+        "date": "2012.08.03",
+        "record": "1-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Decision · Split",
+        "event": "CES 11: Proving Grounds",
+        "date": "2012.06.15",
+        "record": "0-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      }
+    ],
+    "am": [
+      {
+        "mainInfo": "Win · Decision · Unanimous",
+        "event": "AFO: Night of Champions 4",
+        "date": "2012.04.13",
+        "record": "4-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Decision · Unanimous",
+        "event": "AFO: New Year's Redemption 4",
+        "date": "2012.01.13",
+        "record": "3-2-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Cancelled Bout",
+        "event": "",
+        "date": "2011.10.07",
+        "record": "",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Decision · Unanimous",
+        "event": "AFO: Glory",
+        "date": "2011.07.15",
+        "record": "3-1-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Loss · Decision · Unanimous",
+        "event": "Cage Titans 4",
+        "date": "2011.04.01",
+        "record": "3-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Decision · Unanimous",
+        "event": "Cage Titans 3",
+        "date": "2011.01.28",
+        "record": "2-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Rear Naked Choke · 2:12 · R1",
+        "event": "AFO: New Years Redemption 3",
+        "date": "2011.01.08",
+        "record": "1-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      },
+      {
+        "mainInfo": "Win · Rear Naked Choke · 1:52 · R1",
+        "event": "Cage Titans 2",
+        "date": "2010.11.05",
+        "record": "0-0-0",
+        "card": "",
+        "timeFormat": "",
+        "weightClass": ""
+      }
+    ]
+  }
+}

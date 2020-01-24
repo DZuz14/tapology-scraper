@@ -1,0 +1,7 @@
+*/5 * * * * cd /root && npm run news >> /root/logs/news.log 2>&1
+*/10 * * * * cd /root && npm run ufcResults >> /root/logs/ufc-results.log 2>&1
+*/10 * * * * cd /root && npm run bellatorResults >> /root/logs/bellator-results.log 2>&1
+*/15 * * * * cd /root && npm run ufcUpcoming >> /root/logs/ufc-upcoming.log 2>&1
+*/15 * * * * cd /root && npm run bellatorUpcoming >> /root/logs/bellator-upcoming.log 2>&1
+
+0 2 * * * sudo /usr/sbin/certbot-auto -q renew
