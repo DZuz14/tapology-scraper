@@ -29,6 +29,8 @@ class FighterProfile {
       const age = hasText("#stats > ul > li:nth-child(7)");
       const heightReach = hasText("#stats > ul > li:nth-child(9)");
       const country = hasText("#stats > ul > li:nth-child(11)");
+
+      // const affiliation =
     });
   }
 }
