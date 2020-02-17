@@ -48,6 +48,7 @@ class FightCenter {
       }
 
       for (const event of events) {
+        await this.page.goto(`${this.url}${event}`);
         // Promotion
         // Event Details
         // Matches
