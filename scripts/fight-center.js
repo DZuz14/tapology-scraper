@@ -23,8 +23,13 @@ class FightCenter {
     });
 
     this.page = await this.browser.newPage();
-
     await this.page.setDefaultNavigationTimeout(60000);
+
+    if (process.argv[2] === "test") {
+      await this.test();
+      return this.browser.close();
+    }
+
     await this.visitEvents();
     await this.browser.close();
   }
@@ -50,7 +55,7 @@ class FightCenter {
 
       for (const event of events) {
         await this.page.goto(`${this.url}${event}`);
-        // Promotion
+        // Get promotion link
         // Event Details
         // Matches
       }
@@ -78,6 +83,24 @@ class FightCenter {
    */
   async getMatchDetails() {
     //
+  }
+
+  /**
+   * @method test
+   */
+  async test() {
+    console.log("Running in test mode...");
+    const scraper = process.argv[3];
+
+    switch (scraper) {
+      case "promotion":
+        await this.page.goto(
+          "https://www.tapology.com/fightcenter/promotions/60-cage-titans-fighting-championship-ctfc"
+        );
+        return await new Promotion(this.page).main();
+      default:
+        console.log("Scraper not recognized. Exiting.");
+    }
   }
 }
 
