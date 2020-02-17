@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const Promotion = require("../scrapers/promotion");
 // const Event = require("../scrapers/event");
 // const FighterProfile = require("../scrapers/fighter-profile");
 
@@ -56,6 +57,27 @@ class FightCenter {
 
       this.count++;
     }
+  }
+
+  /**
+   * @method visitPromotion
+   */
+  async visitPromotion() {
+    //
+  }
+
+  /**
+   * @method getEventDetails
+   */
+  async getEventDetails() {
+    //
+  }
+
+  /**
+   * @method getMatchDetails
+   */
+  async getMatchDetails() {
+    //
   }
 }
 
