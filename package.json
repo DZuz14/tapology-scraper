@@ -4,10 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "news": "node news.js",
-    "events": "node events.js",
-    "profiles": "node fighter-profiles.js"
+    "start": "node scripts/fight-center.js"
   },
   "keywords": [],
   "author": "",
