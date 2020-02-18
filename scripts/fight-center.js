@@ -2,6 +2,7 @@ const puppeteer = require("puppeteer");
 const Promotion = require("../scrapers/promotion");
 // const Event = require("../scrapers/event");
 // const FighterProfile = require("../scrapers/fighter-profile");
+const { testMode } = require("../utils");
 
 /**
  * FightCenter
@@ -11,6 +12,8 @@ class FightCenter {
     this.url =
       "https://www.tapology.com/fightcenter?group=regional&schedule=results&sport=mma&region=2&page=";
     this.count = 1;
+
+    this.promotions = {};
   }
 
   /**
@@ -19,15 +22,16 @@ class FightCenter {
   async main() {
     this.browser = await puppeteer.launch({
       args: ["--no-sandbox"],
-      headless: false
+      headless: true
     });
 
     this.page = await this.browser.newPage();
     await this.page.setDefaultNavigationTimeout(60000);
 
-    if (process.argv[2] === "test") {
+    if (testMode()) {
       await this.test();
-      return this.browser.close();
+      await this.browser.close();
+      process.exit(0);
     }
 
     await this.visitEvents();
@@ -55,6 +59,11 @@ class FightCenter {
 
       for (const event of events) {
         await this.page.goto(`${this.url}${event}`);
+        const promotionName = await Promotion.getName(this.page);
+
+        if (!this.promotions.hasOwnProperty(promotionName)) {
+          const promotion = new Promotion(this.page).main();
+        }
         // Get promotion link
         // Event Details
         // Matches
@@ -90,13 +99,14 @@ class FightCenter {
    */
   async test() {
     console.log("Running in test mode...");
-    const scraper = process.argv[3];
+    const scraper = process.argv[2];
 
     switch (scraper) {
       case "promotion":
         await this.page.goto(
-          "https://www.tapology.com/fightcenter/promotions/60-cage-titans-fighting-championship-ctfc"
+          "https://www.tapology.com/fightcenter/promotions/109-fight-night-mma-fnmma"
         );
+
         return await new Promotion(this.page).main();
       default:
         console.log("Scraper not recognized. Exiting.");
