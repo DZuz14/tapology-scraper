@@ -46,18 +46,25 @@ class FightCenter {
       await this.page.goto(`${this.url}${this.count}`);
       await this.page.waitForSelector(".fightcenterEvents");
 
-      const events = await this.page.evaluate(() =>
+      let events = await this.page.evaluate(() =>
         Array.from(
           document.querySelectorAll("section.fcListing span.name a")
         ).map(event => event.getAttribute("href"))
       );
 
+      // We've visited all of the results listed. No more exist.
       if (!events.length) {
         console.log("No events were found.");
         break;
       }
 
+      // Testing
+      if (testMode()) {
+        events = [];
+      }
+
       for (const event of events) {
+        ///fightcenter/events/63416-cage-titans-46
         await this.page.goto(`${this.url}${event}`);
         const promotionName = await Promotion.getName(this.page);
 
@@ -114,4 +121,5 @@ class FightCenter {
   }
 }
 
+// Run
 new FightCenter().main();
