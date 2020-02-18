@@ -4,10 +4,6 @@ const Promotion = require("../scrapers/promotion");
 // const FighterProfile = require("../scrapers/fighter-profile");
 const { testMode } = require("../utils");
 
-const log = msg => {
-  console.log(msg);
-};
-
 /**
  * FightCenter
  */
@@ -135,24 +131,29 @@ class FightCenter {
   async test() {
     await this.browser.close();
 
-    console.log("\nPromotion:");
-    console.log(this.promotions);
+    log("\nPromotion:");
+    log(this.promotions);
 
-    console.log("\nEvents:");
-    console.log(this.events);
+    log("\nEvents:");
+    log(this.events);
 
-    console.log("\nMatches:");
-    console.log(this.matches);
+    log("\nMatches:");
+    log(this.matches);
 
-    console.log("\nFighters:");
-    console.log(this.fighters);
+    log("\nFighters:");
+    log(this.fighters);
 
-    console.log("\nAffiliates:");
-    console.log(this.affiliates);
+    log("\nAffiliates:");
+    log(this.affiliates);
 
     process.exit(0);
   }
 }
+
+// Helper to shorten the console.log length.
+const log = msg => {
+  console.log(msg);
+};
 
 // Run
 new FightCenter().main();
