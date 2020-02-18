@@ -57,6 +57,9 @@ class FightCenter {
 
       await this.page.waitForSelector(".fightcenterEvents");
 
+      /**
+       * Grab event urls from page.
+       */
       if (testMode())
         this.eventUrls = ["/fightcenter/events/65706-cage-titans-47"];
       else {
@@ -74,10 +77,17 @@ class FightCenter {
 
       log(`Visiting page ${this.count}`);
 
+      /**
+       * Visit each event on the page.
+       */
       for (const event of this.eventUrls) {
         log("Visiting event: " + event);
         await this.page.goto(`${this.url}${event}`);
 
+        /**
+         * We visit the promotion page and use the static method on Promotion
+         * to see if the promotion name already exists in our promotion store.
+         */
         log("\nChecking promotion...");
         const promotionUrl = await this.page.evaluate(() =>
           document
@@ -102,7 +112,14 @@ class FightCenter {
 
         if (testMode()) break;
 
+        /**
+         * Grab the event details from the page.
+         */
         // Event Details
+
+        /**
+         * Grab all matches
+         */
         // Matches
       }
 
