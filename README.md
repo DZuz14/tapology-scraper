@@ -5,6 +5,7 @@ Scrapes every MMA event to happen in the New England Region that is listed in Ta
 ## Installation
 
 - `git clone https://github.com/DZuz14/tapology-scraper.git`
+- `cd tapology-scraper`
 - `npm i`
 
 ## Running
