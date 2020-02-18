@@ -1,5 +1,3 @@
-const { testMode } = require("../utils");
-
 /**
  * Promotion
  */
@@ -11,7 +9,7 @@ class Promotion {
   /**
    * @method getName
    */
-  async static getName(page) {
+  static async getName(page) {
     const name = await page.evaluate(() =>
       document
         .querySelector(
@@ -19,10 +17,6 @@ class Promotion {
         )
         .innerText.trim()
     );
-
-    if (testMode()) {
-      console.log("Checking promotion name: " + name);
-    }
 
     return name;
   }
@@ -75,14 +69,10 @@ class Promotion {
       }, {});
 
       return {
-        logo,
-        info
+        ...info,
+        logo
       };
     });
-
-    if (testMode()) {
-      console.log(promotionInfo);
-    }
 
     return promotionInfo;
   }

@@ -4,15 +4,23 @@ const Promotion = require("../scrapers/promotion");
 // const FighterProfile = require("../scrapers/fighter-profile");
 const { testMode } = require("../utils");
 
+const log = msg => {
+  console.log(msg);
+};
+
 /**
  * FightCenter
  */
 class FightCenter {
   constructor() {
-    this.url =
-      "https://www.tapology.com/fightcenter?group=regional&schedule=results&sport=mma&region=2&page=";
     this.count = 1;
+    this.eventUrls = [];
+    this.url = "https://www.tapology.com";
 
+    this.affiliates = {};
+    this.events = {};
+    this.fighters = {};
+    this.matches = {};
     this.promotions = {};
   }
 
@@ -20,22 +28,22 @@ class FightCenter {
    * @method main
    */
   async main() {
-    this.browser = await puppeteer.launch({
-      args: ["--no-sandbox"],
-      headless: true
-    });
+    try {
+      this.browser = await puppeteer.launch({
+        args: ["--no-sandbox"],
+        headless: true
+      });
 
-    this.page = await this.browser.newPage();
-    await this.page.setDefaultNavigationTimeout(60000);
+      this.page = await this.browser.newPage();
+      await this.page.setDefaultNavigationTimeout(60000);
 
-    if (testMode()) {
-      await this.test();
+      await this.visitEvents();
+      await this.browser.close();
+    } catch (err) {
+      console.log(err);
       await this.browser.close();
       process.exit(0);
     }
-
-    await this.visitEvents();
-    await this.browser.close();
   }
 
   /**
@@ -43,80 +51,83 @@ class FightCenter {
    */
   async visitEvents() {
     while (true) {
-      await this.page.goto(`${this.url}${this.count}`);
-      await this.page.waitForSelector(".fightcenterEvents");
-
-      let events = await this.page.evaluate(() =>
-        Array.from(
-          document.querySelectorAll("section.fcListing span.name a")
-        ).map(event => event.getAttribute("href"))
+      await this.page.goto(
+        `${this.url}/fightcenter?group=regional&schedule=results&sport=mma&region=2&page=${this.count}`
       );
 
-      // We've visited all of the results listed. No more exist.
-      if (!events.length) {
-        console.log("No events were found.");
-        break;
+      await this.page.waitForSelector(".fightcenterEvents");
+
+      if (testMode())
+        this.eventUrls = ["/fightcenter/events/65706-cage-titans-47"];
+      else {
+        this.eventUrls = await this.page.evaluate(() =>
+          Array.from(
+            document.querySelectorAll("section.fcListing span.name a")
+          ).map(event => event.getAttribute("href"))
+        );
+
+        if (!this.eventUrls.length) {
+          log("No events were found.");
+          break;
+        }
       }
 
-      // Testing
-      if (testMode()) {
-        events = [];
-      }
+      log(`Visiting page ${this.count}`);
 
-      for (const event of events) {
-        ///fightcenter/events/63416-cage-titans-46
+      for (const event of this.eventUrls) {
+        log("Visiting event: " + event);
         await this.page.goto(`${this.url}${event}`);
+
+        log("\nChecking promotion...");
+        const promotionUrl = await this.page.evaluate(() =>
+          document
+            .querySelector(
+              "#content > div.details.details_with_poster.clearfix > div.right > ul > li:nth-child(2) > span > a"
+            )
+            .getAttribute("href")
+        );
+
+        await this.page.goto(`${this.url}${promotionUrl}`);
         const promotionName = await Promotion.getName(this.page);
 
         if (!this.promotions.hasOwnProperty(promotionName)) {
-          const promotion = new Promotion(this.page).main();
-        }
-        // Get promotion link
+          log(
+            "Promotion hasn't been visited yet. \nGrabbing info for: " +
+              promotionName
+          );
+
+          const promotionInfo = await new Promotion(this.page).main();
+          this.promotions[promotionName] = promotionInfo;
+        } else log("Promotion already visited. Moving on.");
+
+        if (testMode()) break;
+
         // Event Details
         // Matches
       }
 
+      if (testMode()) {
+        await this.browser.close();
+
+        console.log("\nPromotion:");
+        console.log(this.promotions);
+
+        console.log("\nEvents:");
+        console.log(this.events);
+
+        console.log("\nMatches:");
+        console.log(this.matches);
+
+        console.log("\nFighters:");
+        console.log(this.fighters);
+
+        console.log("\nAffiliates:");
+        console.log(this.affiliates);
+
+        process.exit(0);
+      }
+
       this.count++;
-    }
-  }
-
-  /**
-   * @method visitPromotion
-   */
-  async visitPromotion() {
-    //
-  }
-
-  /**
-   * @method getEventDetails
-   */
-  async getEventDetails() {
-    //
-  }
-
-  /**
-   * @method getMatchDetails
-   */
-  async getMatchDetails() {
-    //
-  }
-
-  /**
-   * @method test
-   */
-  async test() {
-    console.log("Running in test mode...");
-    const scraper = process.argv[2];
-
-    switch (scraper) {
-      case "promotion":
-        await this.page.goto(
-          "https://www.tapology.com/fightcenter/promotions/109-fight-night-mma-fnmma"
-        );
-
-        return await new Promotion(this.page).main();
-      default:
-        console.log("Scraper not recognized. Exiting.");
     }
   }
 }

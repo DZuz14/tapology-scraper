@@ -2,6 +2,16 @@
 
 Scrapes every MMA event to happen in the New England Region that is listed in Tapology's FightCenter.
 
+## Installation
+
+- `git clone https://github.com/DZuz14/tapology-scraper.git`
+- `npm i`
+
+## Running
+
+- `git checkout new-england`
+- `npm run test`
+
 ## Procedure
 
 - For each page of events:
@@ -21,9 +31,3 @@ Scrapes every MMA event to happen in the New England Region that is listed in Ta
         - Else:
           - Visit affiliation page.
       - Get fight results.
-
-## Notes
-
-The bulk of the code that needs to be written is in regards to the procedural traversal listed above, and formatting of the data into the schema model listed in the CSV's. I will look to reuse as much of the existing code as possible, and am thinking I won't even bother with changing the data structure that I store fight data in, and instead write some type of converter function that puts it into the format we need. I haven't given that too much thought yet, so that is up in the air at the moment.
-
-I am glad to explain how everything works, and you can feel free to use it on your own whenever you want.
