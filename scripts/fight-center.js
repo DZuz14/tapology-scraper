@@ -106,29 +106,34 @@ class FightCenter {
         // Matches
       }
 
-      if (testMode()) {
-        await this.browser.close();
-
-        console.log("\nPromotion:");
-        console.log(this.promotions);
-
-        console.log("\nEvents:");
-        console.log(this.events);
-
-        console.log("\nMatches:");
-        console.log(this.matches);
-
-        console.log("\nFighters:");
-        console.log(this.fighters);
-
-        console.log("\nAffiliates:");
-        console.log(this.affiliates);
-
-        process.exit(0);
-      }
+      if (testMode()) await this.test();
 
       this.count++;
     }
+  }
+
+  /**
+   * @method test
+   */
+  async test() {
+    await this.browser.close();
+
+    console.log("\nPromotion:");
+    console.log(this.promotions);
+
+    console.log("\nEvents:");
+    console.log(this.events);
+
+    console.log("\nMatches:");
+    console.log(this.matches);
+
+    console.log("\nFighters:");
+    console.log(this.fighters);
+
+    console.log("\nAffiliates:");
+    console.log(this.affiliates);
+
+    process.exit(0);
   }
 }
 
