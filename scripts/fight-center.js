@@ -87,40 +87,41 @@ class FightCenter {
          * We visit the promotion page and use the static method on Promotion
          * to see if the promotion name already exists in our promotion store.
          */
-        log("\nChecking promotion...");
+        // log("\nChecking promotion...");
 
-        const promotionUrl = await this.page.evaluate(() =>
-          document
-            .querySelector(
-              "#content > div.details.details_with_poster.clearfix > div.right > ul > li:nth-child(2) > span > a"
-            )
-            .getAttribute("href")
-        );
+        // const promotionUrl = await this.page.evaluate(() =>
+        //   document
+        //     .querySelector(
+        //       "#content > div.details.details_with_poster.clearfix > div.right > ul > li:nth-child(2) > span > a"
+        //     )
+        //     .getAttribute("href")
+        // );
 
-        await this.page.goto(`${this.url}${promotionUrl}`);
-        const promotionName = await Promotion.getName(this.page);
+        // await this.page.goto(`${this.url}${promotionUrl}`);
+        // const promotionName = await Promotion.getName(this.page);
 
-        // Add the promotion, or skip if we already have it.
-        if (!this.promotions.hasOwnProperty(promotionName)) {
-          log(
-            "Promotion hasn't been visited yet. \nGrabbing info for: " +
-              promotionName
-          );
+        // // Add the promotion, or skip if we already have it.
+        // if (!this.promotions.hasOwnProperty(promotionName)) {
+        //   log(
+        //     "Promotion hasn't been visited yet. \nGrabbing info for: " +
+        //       promotionName
+        //   );
 
-          const promotionInfo = await new Promotion(this.page).main();
+        //   const promotionInfo = await new Promotion(this.page).main();
 
-          this.promotions[promotionName] = {
-            ...promotionInfo,
-            tapologyURL: `${this.url}${promotionUrl}`
-          };
-        } else log("Promotion already visited. Moving on.");
+        //   this.promotions[promotionName] = {
+        //     ...promotionInfo,
+        //     tapologyURL: `${this.url}${promotionUrl}`
+        //   };
+        // } else log("Promotion already visited. Moving on.");
+
+        // await this.page.goBack();
 
         /**
-         * Go back to the event page from promotions page and get event info.
+         * Get Event Info
          */
-        await this.page.goBack();
+        log("\nRecording details of the event.");
 
-        log("Recording details of the event.");
         const _event = await new Event(this.page).main();
 
         this.events = [
@@ -130,6 +131,14 @@ class FightCenter {
             tapologyUrl: `${this.url}${event}`
           }
         ];
+
+        /**
+         * Grab all matches.
+         */
+        log("Grabbing match results.");
+
+        const matches = await new Matches(this.page).main(_event.name);
+        this.matches = [...this.matches, ...matches];
 
         if (testMode()) await this.test();
       }
@@ -144,20 +153,20 @@ class FightCenter {
   async test() {
     await this.browser.close();
 
-    log("\nPromotion:");
-    log(this.promotions);
+    // log("\nPromotion:");
+    // log(this.promotions);
 
-    log("\nEvents:");
-    log(this.events);
+    // log("\nEvents:");
+    // log(this.events);
 
     log("\nMatches:");
     log(this.matches);
 
-    log("\nFighters:");
-    log(this.fighters);
+    // log("\nFighters:");
+    // log(this.fighters);
 
-    log("\nAffiliates:");
-    log(this.affiliates);
+    // log("\nAffiliates:");
+    // log(this.affiliates);
 
     process.exit(0);
   }

@@ -9,85 +9,83 @@ class Matches {
   /**
    * @method main
    */
-  async main() {
-    const fights = Array.from(
-      document.querySelectorAll("ul.fightCard .fightCardBout")
-    ).map(fight => {
-      const winOrLoss = (el, selector) => {
-        const _el = el.querySelector(selector);
-        if (!_el) return "";
+  async main(event) {
+    return await this.page.evaluate(
+      function matches({ event }) {
+        return Array.from(
+          document.querySelectorAll("#content > ul:first-of-type li")
+        ).map(match => {
+          const win = el => {
+            if (!el) return "";
 
-        let result = _el.getAttribute("alt");
+            let result = el.getAttribute("alt");
 
-        switch (result) {
-          case "Win icon green":
-            return "w";
-          case "Lose icon red":
-            return "l";
-          default:
-            "";
-        }
-      };
+            switch (result) {
+              case "Win icon green":
+                return true;
+              case "Lose icon red":
+                return false;
+              default:
+                "";
+            }
+          };
 
-      const hasText = (el, selector) => {
-        const _el = el.querySelector(selector);
-        return selected ? _el.innerText.trim() : "";
-      };
+          const hasText = (el, selector) => {
+            const _el = el.querySelector(selector);
+            return _el ? _el.innerText.trim() : "";
+          };
 
-      const a = fight
-        .querySelector(
-          ".fightCardFighterBout.left > .fightCardFighterName.left a"
-        )
-        .innerText.trim();
+          const a = hasText(match, ".fightCardFighterName.left a");
+          const b = hasText(match, ".fightCardFighterName.right a");
 
-      const b = fight
-        .querySelector(
-          ".fightCardFighterBout.right > .fightCardFighterName.right a"
-        )
-        .innerText.trim();
+          let time = hasText(match, ".fightCardResult .time");
+          let result = hasText(match, ".fightCardResult .result");
 
-      let time = hasText(".fightCardResult .time");
-      let result = hasText(".fightCardResult .result");
-      let [method, details] = result.split(",");
-      let rounds = document
-        .querySelector(".fightCardMatchup td")
-        .lastChild.textContent.trim();
-      let round;
+          let [method, details] = result.split(",");
 
-      (() => {
-        rounds =
-          rounds.indexOf("\n") > 0
-            ? rounds.slice(0, rounds.indexOf("\n"))
-            : rounds;
+          let round;
+          let rounds = document
+            .querySelector(".fightCardMatchup td")
+            .lastChild.textContent.trim();
 
-        round =
-          method === "DECISION"
-            ? rounds.charAt(rounds.length - 1)
-            : time.slice(time.indexOf("Round") + 6).charAt(0);
+          (() => {
+            rounds =
+              rounds.indexOf("\n") > 0
+                ? rounds.slice(0, rounds.indexOf("\n"))
+                : rounds;
 
-        time = method === "DECISION" ? "5:00" : time.split(" ")[0];
-        time = time === "Round" ? "" : time;
-      })();
+            round =
+              method === "DECISION"
+                ? rounds.charAt(rounds.length - 1)
+                : time.slice(time.indexOf("Round") + 6).charAt(0);
 
-      return {
-        fighters: {
-          [a]: {
-            name: a,
-            winLoss: winOrLoss(".fightCardFighterName.left .resultIcon img")
-          },
-          [b]: {
-            name: b,
-            winLoss: winOrLoss(".fightCardFighterName.right .resultIcon img")
-          }
-        },
-        weightClass: hasText(".fightCardWeight .weight"),
-        method,
-        round,
-        time,
-        timeFormat: rounds,
-        details: !details ? "" : details.trim()
-      };
-    });
+            time = method === "DECISION" ? "5:00" : time.split(" ")[0];
+            time = time === "Round" ? "" : time;
+          })();
+
+          return {
+            fighterA: {
+              name: a,
+              win: win(document.querySelector(".fightCardFighterName.left img"))
+            },
+            fighterB: {
+              name: b,
+              win: win(
+                document.querySelector(".fightCardFighterName.right img")
+              )
+            },
+            weightClass: hasText(match, ".fightCardWeight .weight"),
+            method,
+            round,
+            time,
+            timeFormat: rounds,
+            details: !details ? "" : details.trim(),
+            event
+          };
+        });
+      },
+      { event }
+    );
   }
 }
 
