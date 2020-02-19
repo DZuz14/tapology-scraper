@@ -9,13 +9,6 @@ const { testMode } = require("../utils");
 
 /**
  * FightCenter
- *
- * - Visit Promotion Via Logo. Write to JSON file.
- * - Enter each event via urls. Write to JSON file.
- * - Grab all fighter names. Write to JSON file.
- * - Visit each fighter. Grab affiliate. Write all matches to JSON file.
- * - Loop through all affiliates. Write to JSON file.
- * - Done.
  */
 class FightCenter {
   constructor() {
@@ -50,16 +43,26 @@ class FightCenter {
         const pageResults = await this.visitResultsPage();
         if (!pageResults) throw Error("No events found.");
 
-        this.eventLinks = pageResults.events;
-        this.promotionLinks = pageResults.promotions;
+        this.eventLinks = testMode()
+          ? pageResults.events.slice(0, 1)
+          : pageResults.events;
 
-        await this.getPromotion();
-        await this.getEvent();
-        await this.getFighters();
+        this.promotionLinks = testMode()
+          ? pageResults.promotions.slice(0, 1)
+          : pageResults.promotions;
 
-        await this.getFighterProfiles();
-        await this.getMatches();
-        await this.getAffiliates();
+        for (const link of this.promotionLinks) {
+          if (this.promotions.hasOwnProperty(link)) continue;
+          const promotion = await this.getPromotion(link);
+          this.promotions[link] = promotion;
+        }
+
+        // await this.getEvent();
+        // await this.getFighters();
+
+        // await this.getFighterProfiles();
+        // await this.getMatches();
+        // await this.getAffiliates();
 
         if (testMode()) await this.test();
 
@@ -103,6 +106,16 @@ class FightCenter {
   }
 
   /**
+   * @method getPromotion
+   */
+  async getPromotion(link) {
+    log("\nVisiting promotion link: " + link);
+
+    await this.page.goto(`${this.url}${link}`);
+    return await new Promotion(this.page).main();
+  }
+
+  /**
    * @method test
    */
   async test() {
@@ -114,8 +127,8 @@ class FightCenter {
     log("\nPromotion Links:");
     log(this.promotionLinks);
 
-    // log("\nPromotion:");
-    // log(this.promotions);
+    log("\nPromotion:");
+    log(this.promotions);
 
     // log("\nEvents:");
     // log(this.events);
@@ -140,38 +153,6 @@ const log = msg => {
 
 // Run
 new FightCenter().main();
-
-// /**
-//  * @method getPromotion
-//  */
-// async getPromotion() {
-//   log("\nChecking promotion...");
-
-//   const promotionUrl = await this.page.evaluate(() =>
-//     document
-//       .querySelector(
-//         "#content > div.details.details_with_poster.clearfix > div.right > ul > li:nth-child(2) > span > a"
-//       )
-//       .getAttribute("href")
-//   );
-
-//   await this.page.goto(`${this.url}${promotionUrl}`);
-//   const promotionName = await Promotion.getName(this.page);
-
-//   if (!this.promotions.hasOwnProperty(promotionName)) {
-//     log(
-//       "Promotion hasn't been visited yet. \nGrabbing info for: " +
-//         promotionName
-//     );
-
-//     const promotionInfo = await new Promotion(this.page).main();
-
-//     this.promotions[promotionName] = {
-//       ...promotionInfo,
-//       tapologyURL: `${this.url}${promotionUrl}`
-//     };
-//   } else log("Promotion already visited. Moving on.");
-// }
 
 // /**
 //  * @method getEvent

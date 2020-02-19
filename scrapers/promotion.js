@@ -7,25 +7,10 @@ class Promotion {
   }
 
   /**
-   * @method getName
-   */
-  static async getName(page) {
-    const name = await page.evaluate(() =>
-      document
-        .querySelector(
-          "#content > div.details.details_with_poster > div.right > ul > li:nth-child(1) > span"
-        )
-        .innerText.trim()
-    );
-
-    return name;
-  }
-
-  /**
    * @method main
    */
   async main() {
-    const promotionInfo = await this.page.evaluate(() => {
+    return await this.page.evaluate(() => {
       const logo = document
         .querySelector("#content > div.details.details_with_poster .left img")
         .getAttribute("src");
@@ -73,8 +58,6 @@ class Promotion {
         logo
       };
     });
-
-    return promotionInfo;
   }
 }
 
