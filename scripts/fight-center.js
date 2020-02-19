@@ -1,7 +1,10 @@
 const puppeteer = require("puppeteer");
 const Promotion = require("../scrapers/promotion");
-// const Event = require("../scrapers/event");
-// const FighterProfile = require("../scrapers/fighter-profile");
+const Event = require("../scrapers/event");
+const Matches = require("../scrapers/matches");
+const FighterProfile = require("../scrapers/fighter-profile");
+const Affiliation = require("../scrapers/affiliation");
+
 const { testMode } = require("../utils");
 
 /**
@@ -10,13 +13,14 @@ const { testMode } = require("../utils");
 class FightCenter {
   constructor() {
     this.count = 1;
-    this.eventUrls = [];
     this.url = "https://www.tapology.com";
+    this.eventUrls = ["/fightcenter/events/65706-cage-titans-47"];
+
+    this.events = [];
+    this.matches = [];
 
     this.affiliates = {};
-    this.events = {};
     this.fighters = {};
-    this.matches = {};
     this.promotions = {};
   }
 
@@ -56,9 +60,7 @@ class FightCenter {
       /**
        * Grab event urls from page.
        */
-      if (testMode())
-        this.eventUrls = ["/fightcenter/events/65706-cage-titans-47"];
-      else {
+      if (!testMode()) {
         this.eventUrls = await this.page.evaluate(() =>
           Array.from(
             document.querySelectorAll("section.fcListing span.name a")
@@ -78,6 +80,7 @@ class FightCenter {
        */
       for (const event of this.eventUrls) {
         log("Visiting event: " + event);
+
         await this.page.goto(`${this.url}${event}`);
 
         /**
@@ -85,6 +88,7 @@ class FightCenter {
          * to see if the promotion name already exists in our promotion store.
          */
         log("\nChecking promotion...");
+
         const promotionUrl = await this.page.evaluate(() =>
           document
             .querySelector(
@@ -96,6 +100,7 @@ class FightCenter {
         await this.page.goto(`${this.url}${promotionUrl}`);
         const promotionName = await Promotion.getName(this.page);
 
+        // Add the promotion, or skip if we already have it.
         if (!this.promotions.hasOwnProperty(promotionName)) {
           log(
             "Promotion hasn't been visited yet. \nGrabbing info for: " +
@@ -103,23 +108,31 @@ class FightCenter {
           );
 
           const promotionInfo = await new Promotion(this.page).main();
-          this.promotions[promotionName] = promotionInfo;
+
+          this.promotions[promotionName] = {
+            ...promotionInfo,
+            tapologyURL: `${this.url}${promotionUrl}`
+          };
         } else log("Promotion already visited. Moving on.");
 
-        if (testMode()) break;
-
         /**
-         * Grab the event details from the page.
+         * Go back to the event page from promotions page and get event info.
          */
-        // Event Details
+        await this.page.goBack();
 
-        /**
-         * Grab all matches
-         */
-        // Matches
+        log("Recording details of the event.");
+        const _event = await new Event(this.page).main();
+
+        this.events = [
+          ...this.events,
+          {
+            ..._event,
+            tapologyUrl: `${this.url}${event}`
+          }
+        ];
+
+        if (testMode()) await this.test();
       }
-
-      if (testMode()) await this.test();
 
       this.count++;
     }
