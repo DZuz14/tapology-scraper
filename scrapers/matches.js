@@ -36,11 +36,19 @@ class Matches {
           };
 
           const a = hasText(match, ".fightCardFighterName.left a");
+
+          const aUrl = match
+            .querySelector(".fightCardFighterName.left a")
+            .getAttribute("href");
+
           const b = hasText(match, ".fightCardFighterName.right a");
+
+          const bUrl = match
+            .querySelector(".fightCardFighterName.right a")
+            .getAttribute("href");
 
           let time = hasText(match, ".fightCardResult .time");
           let result = hasText(match, ".fightCardResult .result");
-
           let [method, details] = result.split(",");
 
           let round;
@@ -66,10 +74,12 @@ class Matches {
           return {
             fighterA: {
               name: a,
+              url: aUrl,
               win: win(document.querySelector(".fightCardFighterName.left img"))
             },
             fighterB: {
               name: b,
+              url: bUrl,
               win: win(
                 document.querySelector(".fightCardFighterName.right img")
               )

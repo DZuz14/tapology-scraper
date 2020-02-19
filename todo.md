@@ -1,0 +1,2 @@
+- matches need to be pulled from fighter profile instead
+- need to scrape a list of events to have for reference to know which one is regional on each fighters profile.

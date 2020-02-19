@@ -51,15 +51,12 @@ class FightCenter {
    */
   async visitEvents() {
     while (true) {
+      log(`Visiting page ${this.count}`);
+
       await this.page.goto(
         `${this.url}/fightcenter?group=regional&schedule=results&sport=mma&region=2&page=${this.count}`
       );
 
-      await this.page.waitForSelector(".fightcenterEvents");
-
-      /**
-       * Grab event urls from page.
-       */
       if (!testMode()) {
         this.eventUrls = await this.page.evaluate(() =>
           Array.from(
@@ -67,83 +64,134 @@ class FightCenter {
           ).map(event => event.getAttribute("href"))
         );
 
-        if (!this.eventUrls.length) {
-          log("No events were found.");
-          break;
+        if (!this.eventUrls.length) return log("No events were found.");
+      }
+
+      for (const eventUrl of this.eventUrls) {
+        this.eventUrl = eventUrl;
+        log("Visiting event: " + eventUrl);
+
+        await this.page.goto(`${this.url}${this.eventUrl}`);
+        await this.getPromotion();
+        await this.page.goBack();
+        await this.getEvent();
+
+        const affiliates = await this.getMatches();
+        await this.getAffiliates(affiliates);
+
+        if (testMode()) {
+          await this.test();
         }
       }
 
-      log(`Visiting page ${this.count}`);
-
-      /**
-       * Visit each event on the page.
-       */
-      for (const event of this.eventUrls) {
-        log("Visiting event: " + event);
-
-        await this.page.goto(`${this.url}${event}`);
-
-        /**
-         * We visit the promotion page and use the static method on Promotion
-         * to see if the promotion name already exists in our promotion store.
-         */
-        // log("\nChecking promotion...");
-
-        // const promotionUrl = await this.page.evaluate(() =>
-        //   document
-        //     .querySelector(
-        //       "#content > div.details.details_with_poster.clearfix > div.right > ul > li:nth-child(2) > span > a"
-        //     )
-        //     .getAttribute("href")
-        // );
-
-        // await this.page.goto(`${this.url}${promotionUrl}`);
-        // const promotionName = await Promotion.getName(this.page);
-
-        // // Add the promotion, or skip if we already have it.
-        // if (!this.promotions.hasOwnProperty(promotionName)) {
-        //   log(
-        //     "Promotion hasn't been visited yet. \nGrabbing info for: " +
-        //       promotionName
-        //   );
-
-        //   const promotionInfo = await new Promotion(this.page).main();
-
-        //   this.promotions[promotionName] = {
-        //     ...promotionInfo,
-        //     tapologyURL: `${this.url}${promotionUrl}`
-        //   };
-        // } else log("Promotion already visited. Moving on.");
-
-        // await this.page.goBack();
-
-        /**
-         * Get Event Info
-         */
-        log("\nRecording details of the event.");
-
-        const _event = await new Event(this.page).main();
-
-        this.events = [
-          ...this.events,
-          {
-            ..._event,
-            tapologyUrl: `${this.url}${event}`
-          }
-        ];
-
-        /**
-         * Grab all matches.
-         */
-        log("Grabbing match results.");
-
-        const matches = await new Matches(this.page).main(_event.name);
-        this.matches = [...this.matches, ...matches];
-
-        if (testMode()) await this.test();
-      }
-
       this.count++;
+    }
+  }
+
+  /**
+   * @method getPromotion
+   */
+  async getPromotion() {
+    log("\nChecking promotion...");
+
+    const promotionUrl = await this.page.evaluate(() =>
+      document
+        .querySelector(
+          "#content > div.details.details_with_poster.clearfix > div.right > ul > li:nth-child(2) > span > a"
+        )
+        .getAttribute("href")
+    );
+
+    await this.page.goto(`${this.url}${promotionUrl}`);
+    const promotionName = await Promotion.getName(this.page);
+
+    if (!this.promotions.hasOwnProperty(promotionName)) {
+      log(
+        "Promotion hasn't been visited yet. \nGrabbing info for: " +
+          promotionName
+      );
+
+      const promotionInfo = await new Promotion(this.page).main();
+
+      this.promotions[promotionName] = {
+        ...promotionInfo,
+        tapologyURL: `${this.url}${promotionUrl}`
+      };
+    } else log("Promotion already visited. Moving on.");
+  }
+
+  /**
+   * @method getEvent
+   */
+  async getEvent() {
+    this.event = await new Event(this.page).main();
+    log("\nRecording details for event: " + this.event.name);
+
+    this.events = [
+      ...this.events,
+      {
+        ...this.event,
+        tapologyUrl: `${this.url}${this.eventUrl}`
+      }
+    ];
+
+    log("Event details recorded successfully.");
+  }
+
+  /**
+   * @method getMatches
+   */
+  async getMatches() {
+    log("\nRecording match results.");
+
+    const matches = await new Matches(this.page).main(this.event.name);
+    this.matches = [...this.matches, ...matches];
+
+    if (testMode()) {
+      this.matches = this.matches.slice(0, 1);
+    }
+
+    const fighterAffiliates = [];
+
+    for (const match of this.matches) {
+      const { fighterA, fighterB } = match;
+
+      log(`\nChecking profile data for ${fighterA.name} & ${fighterB.name}`);
+
+      for (const fighter of [fighterA, fighterB]) {
+        if (!this.fighters.hasOwnProperty(fighter.name)) {
+          log(fighter.name + " not found. Visiting profile.");
+
+          await this.page.goto(`${this.url}${fighter.url}`);
+
+          const profile = await new FighterProfile(this.page).main();
+          this.fighters[fighter.name] = profile;
+
+          const hasAffiliate = fighterAffiliates.filter(
+            ({ name }) => name === profile.affiliation.name
+          );
+
+          if (!hasAffiliate.length) fighterAffiliates.push(profile.affiliation);
+
+          log(`${fighter.name} recorded successfully.`);
+        } else log(`${fighter.name} found. Skipping profile.`);
+      }
+    }
+
+    log("\nAll matches recorded.");
+
+    return fighterAffiliates;
+  }
+
+  /**
+   * @method getAffiliates
+   */
+  async getAffiliates(affiliates) {
+    log("\nChecking affiliates.");
+
+    for (const affiliate of affiliates) {
+      const { name, url } = affiliate;
+      console.log(name, url);
     }
   }
 
@@ -153,20 +201,20 @@ class FightCenter {
   async test() {
     await this.browser.close();
 
-    // log("\nPromotion:");
-    // log(this.promotions);
+    log("\nPromotion:");
+    log(this.promotions);
 
-    // log("\nEvents:");
-    // log(this.events);
+    log("\nEvents:");
+    log(this.events);
 
     log("\nMatches:");
     log(this.matches);
 
-    // log("\nFighters:");
-    // log(this.fighters);
+    log("\nFighters:");
+    log(this.fighters);
 
-    // log("\nAffiliates:");
-    // log(this.affiliates);
+    log("\nAffiliates:");
+    log(this.affiliates);
 
     process.exit(0);
   }
