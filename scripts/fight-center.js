@@ -18,9 +18,8 @@ class FightCenter {
     this.eventLinks = [];
     this.promotionLinks = [];
 
-    this.events = [];
-    this.matches = [];
-
+    this.events = {};
+    this.matches = {};
     this.affiliates = {};
     this.fighters = {};
     this.promotions = {};
@@ -57,7 +56,12 @@ class FightCenter {
           this.promotions[link] = promotion;
         }
 
-        // await this.getEvent();
+        for (const link of this.eventLinks) {
+          if (this.events.hasOwnProperty(link)) continue;
+          const event = await this.getEvent(link);
+          this.events[link] = event;
+        }
+
         // await this.getFighters();
 
         // await this.getFighterProfiles();
@@ -110,9 +114,17 @@ class FightCenter {
    */
   async getPromotion(link) {
     log("\nVisiting promotion link: " + link);
-
     await this.page.goto(`${this.url}${link}`);
     return await new Promotion(this.page).main();
+  }
+
+  /**
+   * @method getEvent
+   */
+  async getEvent(link) {
+    log("\nVisiting event link: " + link);
+    await this.page.goto(`${this.url}${link}`);
+    return await new Event(this.page).main();
   }
 
   /**
@@ -130,8 +142,8 @@ class FightCenter {
     log("\nPromotion:");
     log(this.promotions);
 
-    // log("\nEvents:");
-    // log(this.events);
+    log("\nEvents:");
+    log(this.events);
 
     // log("\nMatches:");
     // log(this.matches);
@@ -153,24 +165,6 @@ const log = msg => {
 
 // Run
 new FightCenter().main();
-
-// /**
-//  * @method getEvent
-//  */
-// async getEvent() {
-//   this.event = await new Event(this.page).main();
-//   log("\nRecording details for event: " + this.event.name);
-
-//   this.events = [
-//     ...this.events,
-//     {
-//       ...this.event,
-//       tapologyUrl: `${this.url}${this.eventUrl}`
-//     }
-//   ];
-
-//   log("Event details recorded successfully.");
-// }
 
 // /**
 //  * @method getMatches
