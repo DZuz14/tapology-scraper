@@ -10,7 +10,10 @@ class Affiliation {
    * @method main
    */
   async main() {
-    //
+    return {
+      url: "",
+      logo: ""
+    };
   }
 }
 

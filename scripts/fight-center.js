@@ -1,7 +1,7 @@
+const fs = require("fs");
 const puppeteer = require("puppeteer");
 const Promotion = require("../scrapers/promotion");
 const Event = require("../scrapers/event");
-const Matches = require("../scrapers/matches");
 const FighterProfile = require("../scrapers/fighter-profile");
 const Affiliation = require("../scrapers/affiliation");
 
@@ -9,20 +9,22 @@ const { testMode } = require("../utils");
 
 /**
  * FightCenter
+ *
+ * @todo
+ * - Write checks for promotions and the reversal of match keys for matches
  */
 class FightCenter {
   constructor() {
     this.count = 1;
     this.url = "https://www.tapology.com";
 
-    this.eventLinks = [];
-    this.promotionLinks = [];
-
     this.events = {};
     this.matches = {};
     this.affiliates = {};
     this.fighters = {};
     this.promotions = {};
+
+    this.files = ["affiliates", "events", "fighters", "matches", "promotions"];
   }
 
   /**
@@ -38,32 +40,23 @@ class FightCenter {
     await this.page.setDefaultNavigationTimeout(60000);
 
     try {
+      this.getFiles();
+
       while (true) {
         const pageResults = await this.visitResultsPage();
         if (!pageResults) throw Error("No events found.");
 
-        this.eventLinks = testMode()
-          ? pageResults.events.slice(0, 1)
-          : pageResults.events;
+        this.events = { ...this.events, ...pageResults.events };
+        this.promotions = { ...this.promotions, ...pageResults.promotions };
 
-        this.promotionLinks = testMode()
-          ? pageResults.promotions.slice(0, 1)
-          : pageResults.promotions;
+        await this.getPromotions();
+        await this.getEvents();
 
-        for (const link of this.promotionLinks) {
-          if (this.promotions.hasOwnProperty(link)) continue;
-          const promotion = await this.getPromotion(link);
-          this.promotions[link] = promotion;
+        if (testMode()) {
+          log(this.events);
+          log(this.affiliates);
+          throw Error("\nTesting Done.");
         }
-
-        for (const link of this.eventLinks) {
-          const { fighterLinks, event } = await this.getEvent(link);
-          this.events[link] = event;
-          const fighters = await this.getProfiles(fighterLinks);
-          this.fighters = { ...this.fighters, ...fighters };
-        }
-
-        if (testMode()) await this.test();
 
         this.count++;
       }
@@ -87,15 +80,21 @@ class FightCenter {
     return await this.page.evaluate(() => {
       const events = Array.from(
         document.querySelectorAll("section.fcListing span.name a")
-      ).map(event => event.getAttribute("href"));
-
-      if (!events.length) return null;
+      )
+        .map(event => event.getAttribute("href"))
+        .reduce((events, event) => {
+          return { ...events, [event]: null };
+        }, {});
 
       const promotions = Array.from(
         document.querySelectorAll(
           "#content > div.fightcenterEvents .promotionLogo a"
         )
-      ).map(promotionLink => promotionLink.getAttribute("href"));
+      )
+        .map(promotionLink => promotionLink.getAttribute("href"))
+        .reduce((promotions, promotion) => {
+          return { ...promotions, [promotion]: null };
+        }, {});
 
       return {
         events,
@@ -107,20 +106,39 @@ class FightCenter {
   /**
    * @method getPromotion
    */
-  async getPromotion(link) {
-    log("\nVisiting promotion link: " + link);
-    await this.page.goto(`${this.url}${link}`);
-    return await new Promotion(this.page).main();
+  async getPromotions() {
+    for (const link of Object.keys(this.promotions)) {
+      log("\nVisiting promotion link: " + link);
+
+      await this.page.goto(`${this.url}${link}`);
+      this.promotions[link] = await new Promotion(this.page).main();
+
+      if (testMode()) return;
+
+      await this.page.waitFor(1500);
+    }
   }
 
   /**
-   * @method getEvent
+   * @method getEvents
    */
-  async getEvent(link) {
-    log("Visiting event link: " + link);
-    await this.page.goto(`${this.url}${link}`);
+  async getEvents() {
+    for (const link of Object.keys(this.events)) {
+      log("\nVisiting event link: " + link);
 
-    const fighterLinks = await this.page.evaluate(() => {
+      await this.page.goto(`${this.url}${link}`);
+      this.events[link] = await new Event(this.page).main();
+      await this.getProfiles();
+
+      if (testMode()) break;
+    }
+  }
+
+  /**
+   * @method getProfiles
+   */
+  async getProfiles() {
+    const profileLinks = await this.page.evaluate(() => {
       return Array.from(
         document.querySelectorAll("#content > ul:first-of-type li")
       )
@@ -147,54 +165,67 @@ class FightCenter {
         }, {});
     });
 
-    const event = await new Event(this.page).main();
-    return { fighterLinks, event };
-  }
-
-  /**
-   * @method getProfiles
-   */
-  async getProfiles(fighterLinks) {
     let fighters = {};
+    let matches = {};
 
-    for (const [name, link] of Object.entries(fighterLinks)) {
-      await this.page.goto(`${this.url}${link}`);
+    for (const [name, link] of Object.entries(profileLinks)) {
+      await this.page.goto(`${this.url}${link}`, { waitUntil: "networkidle0" });
+      await this.page.click(
+        "#fighterRecordControls > header > div.right section"
+      );
+      await this.page.waitForSelector(".detail.tall");
+
       const profile = await new FighterProfile(this.page).main();
-      fighters = { ...fighters, [name]: profile };
-      await this.page.waitFor(2000);
+
+      fighters = { ...fighters, [name]: profile.profile };
+      matches = { ...matches, ...profile.matches };
+
+      if (testMode()) break;
     }
 
-    return fighters;
+    for (const fighter of Object.keys(fighters)) {
+      if (!this.fighters.hasOwnProperty(fighter))
+        this.fighters[fighter] = fighters[fighter];
+    }
+
+    for (const match of Object.keys(matches)) {
+      if (!this.matches.hasOwnProperty(match))
+        this.matches[match] = matches[match];
+    }
+
+    await this.getAffiliates(fighters);
   }
 
   /**
-   * @method test
+   * @method getAffiliates
    */
-  async test() {
-    await this.browser.close();
+  async getAffiliates(fighters) {
+    for (const profile of Object.values(fighters)) {
+      const { name, url } = profile.affiliation;
 
-    log("\nEvent Links:");
-    log(this.eventLinks);
+      if (!this.affiliates.hasOwnProperty(name)) {
+        await this.page.goto(`${this.url}${url}`);
+        this.affiliates[name] = await new Affiliation(this.page).main();
+      }
+    }
+  }
 
-    log("\nPromotion Links:");
-    log(this.promotionLinks);
+  /**
+   * @method getFiles
+   */
+  getFiles() {
+    for (const file of this.files) {
+      const data = fs.readFileSync(`./data/${file}.json`, { encoding: "utf8" });
+      this[file] = JSON.parse(data);
+    }
+  }
 
-    log("\nPromotion:");
-    log(this.promotions);
-
-    log("\nEvents:");
-    log(this.events);
-
-    log("\nFighters:");
-    log(this.fighters);
-
-    // log("\nMatches:");
-    // log(this.matches);
-
-    // log("\nAffiliates:");
-    // log(this.affiliates);
-
-    process.exit(0);
+  /**
+   * @method writeFiles
+   */
+  writeFiles() {
+    for (const file of this.files)
+      fs.writeFileSync(`./data/${file}.json`, JSON.stringify(this[file]));
   }
 }
 
@@ -205,58 +236,3 @@ const log = msg => {
 
 // Run
 new FightCenter().main();
-
-// /**
-//  * @method getMatches
-//  */
-// async getMatches() {
-//   log("\nRecording match results.");
-
-//   const matches = await new Matches(this.page).main(this.event.name);
-//   this.matches = [...this.matches, ...matches];
-
-//   if (testMode()) this.matches = this.matches.slice(0, 1);
-
-//   const fighterAffiliates = [];
-
-//   for (const match of this.matches) {
-//     const { fighterA, fighterB } = match;
-
-//     log(`\nChecking profile data for ${fighterA.name} & ${fighterB.name}`);
-
-//     for (const fighter of [fighterA, fighterB]) {
-//       if (!this.fighters.hasOwnProperty(fighter.name)) {
-//         log(fighter.name + " not found. Visiting profile.");
-
-//         await this.page.goto(`${this.url}${fighter.url}`);
-
-//         const profile = await new FighterProfile(this.page).main();
-//         this.fighters[fighter.name] = profile;
-
-//         const hasAffiliate = fighterAffiliates.filter(
-//           ({ name }) => name === profile.affiliation.name
-//         );
-
-//         if (!hasAffiliate.length) fighterAffiliates.push(profile.affiliation);
-
-//         log(`${fighter.name} recorded successfully.`);
-//       } else log(`${fighter.name} found. Skipping profile.`);
-//     }
-//   }
-
-//   log("\nAll matches recorded.");
-
-//   return fighterAffiliates;
-// }
-
-// /**
-//  * @method getAffiliates
-//  */
-// async getAffiliates(affiliates) {
-//   log("\nChecking affiliates.");
-
-//   for (const affiliate of affiliates) {
-//     const { name, url } = affiliate;
-//     console.log(name, url);
-//   }
-// }

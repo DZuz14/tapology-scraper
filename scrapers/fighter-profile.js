@@ -10,7 +10,7 @@ class FighterProfile {
    * @method main
    */
   async main() {
-    const info = await this.page.evaluate(() => {
+    const profile = await this.page.evaluate(() => {
       const hasText = selector => {
         const el = document.querySelector(selector);
         return el ? el.innerText.trim() : "";
@@ -52,139 +52,59 @@ class FighterProfile {
       };
     });
 
-    const matches = await this.getMatches();
-    return { ...info, matches };
+    const matches = await this.getMatches(profile.name);
+    return { profile, matches };
   }
 
   /**
    * @method getMatches
    */
-  async getMatches() {
-    await this.page.click("#fighterRecordControls > header > div.right");
-    await this.page.waitForSelector(".detail.tall");
+  async getMatches(fighterName) {
+    return await this.page.evaluate(
+      ({ fighterName }) => {
+        const hasText = (el, selector) => {
+          const _el = el.querySelector(selector);
+          return _el ? _el.innerText.trim() : "";
+        };
 
-    // const am = Array.from(
-    //   document.querySelectorAll(
-    //     "#fighterRecord > section:nth-child(4) .result"
-    //   )
-    // ).map(fight => {
-    //   let mainInfo = fight.querySelector(".summary .lead");
-    //   mainInfo = mainInfo ? mainInfo.innerText.trim() : "";
+        return Array.from(
+          document.querySelectorAll(".fighterFightResults .result")
+        )
+          .filter(match => match.getAttribute("data-result") !== "cancelled")
+          .map(match => {
+            const mainInfo = hasText(match, ".summary .lead");
+            const date = hasText(match, ".date");
+            const event = hasText(match, ".notes");
+            const card = hasText(match, ".detail.tall > div:nth-child(1)");
+            const timeFormat = hasText(
+              match,
+              ".detail.tall > div:nth-child(2)"
+            );
+            const weightClass = hasText(
+              match,
+              ".detail.tall > div:nth-child(3)"
+            );
+            const opponent = hasText(match, ".opponent a");
 
-    //   let date = fight.querySelector(".date");
-    //   date = date ? date.innerText.trim() : "";
-
-    //   let event = fight.querySelector(".notes");
-    //   event = event ? event.innerText.trim() : "";
-
-    //   let record = fight.querySelector(
-    //     ".opponent > div.record > span:nth-child(1)"
-    //   );
-    //   record = record ? record.innerText.trim() : "";
-
-    //   let card = fight.querySelector(".detail.tall > div:nth-child(1)");
-    //   card = card ? card.innerText.trim() : "";
-
-    //   let timeFormat = fight.querySelector(
-    //     ".detail.tall > div:nth-child(2)"
-    //   );
-    //   timeFormat = timeFormat ? timeFormat.innerText.trim() : "";
-
-    //   let weightClass = fight.querySelector(
-    //     ".detail.tall > div:nth-child(3)"
-    //   );
-    //   weightClass = weightClass ? weightClass.innerText.trim() : "";
-
-    //   return {
-    //     mainInfo,
-    //     event,
-    //     date,
-    //     record,
-    //     card,
-    //     timeFormat,
-    //     weightClass
-    //   };
-    // });
-    // return await this.page.evaluate(() => {
-    //   return Array.from(
-    //     document.querySelectorAll("#content > ul:first-of-type li")
-    //   ).map(match => {
-    //     const win = el => {
-    //       if (!el) return "";
-
-    //       let result = el.getAttribute("alt");
-
-    //       switch (result) {
-    //         case "Win icon green":
-    //           return true;
-    //         case "Lose icon red":
-    //           return false;
-    //         default:
-    //           "";
-    //       }
-    //     };
-
-    //     const hasText = (el, selector) => {
-    //       const _el = el.querySelector(selector);
-    //       return _el ? _el.innerText.trim() : "";
-    //     };
-
-    //     const a = hasText(match, ".fightCardFighterName.left a");
-
-    //     const aUrl = match
-    //       .querySelector(".fightCardFighterName.left a")
-    //       .getAttribute("href");
-
-    //     const b = hasText(match, ".fightCardFighterName.right a");
-
-    //     const bUrl = match
-    //       .querySelector(".fightCardFighterName.right a")
-    //       .getAttribute("href");
-
-    //     let time = hasText(match, ".fightCardResult .time");
-    //     let result = hasText(match, ".fightCardResult .result");
-    //     let [method, details] = result.split(",");
-
-    //     let round;
-    //     let rounds = document
-    //       .querySelector(".fightCardMatchup td")
-    //       .lastChild.textContent.trim();
-
-    //     (() => {
-    //       rounds =
-    //         rounds.indexOf("\n") > 0
-    //           ? rounds.slice(0, rounds.indexOf("\n"))
-    //           : rounds;
-
-    //       round =
-    //         method === "DECISION"
-    //           ? rounds.charAt(rounds.length - 1)
-    //           : time.slice(time.indexOf("Round") + 6).charAt(0);
-
-    //       time = method === "DECISION" ? "5:00" : time.split(" ")[0];
-    //       time = time === "Round" ? "" : time;
-    //     })();
-
-    //     return {
-    //       fighterA: {
-    //         name: a,
-    //         url: aUrl,
-    //         win: win(document.querySelector(".fightCardFighterName.left img"))
-    //       },
-    //       fighterB: {
-    //         name: b,
-    //         url: bUrl,
-    //         win: win(document.querySelector(".fightCardFighterName.right img"))
-    //       },
-    //       weightClass: hasText(match, ".fightCardWeight .weight"),
-    //       method,
-    //       round,
-    //       time,
-    //       timeFormat: rounds,
-    //       details: !details ? "" : details.trim()
-    //     };
-    //   });
-    // });
+            return {
+              opponent,
+              mainInfo,
+              event,
+              date,
+              card,
+              timeFormat,
+              weightClass
+            };
+          })
+          .reduce((matches, match) => {
+            return {
+              ...matches,
+              [`${fighterName} vs. ${match.opponent}`]: match
+            };
+          }, {});
+      },
+      { fighterName }
+    );
   }
 }
 
