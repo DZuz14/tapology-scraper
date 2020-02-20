@@ -57,16 +57,11 @@ class FightCenter {
         }
 
         for (const link of this.eventLinks) {
-          if (this.events.hasOwnProperty(link)) continue;
-          const event = await this.getEvent(link);
+          const { fighterLinks, event } = await this.getEvent(link);
           this.events[link] = event;
+          const fighters = await this.getProfiles(fighterLinks);
+          this.fighters = { ...this.fighters, ...fighters };
         }
-
-        // await this.getFighters();
-
-        // await this.getFighterProfiles();
-        // await this.getMatches();
-        // await this.getAffiliates();
 
         if (testMode()) await this.test();
 
@@ -122,9 +117,54 @@ class FightCenter {
    * @method getEvent
    */
   async getEvent(link) {
-    log("\nVisiting event link: " + link);
+    log("Visiting event link: " + link);
     await this.page.goto(`${this.url}${link}`);
-    return await new Event(this.page).main();
+
+    const fighterLinks = await this.page.evaluate(() => {
+      return Array.from(
+        document.querySelectorAll("#content > ul:first-of-type li")
+      )
+        .map(match => {
+          const hasText = (el, selector) => {
+            const _el = el.querySelector(selector);
+            return _el ? _el.innerText.trim() : "";
+          };
+
+          const a = hasText(match, ".fightCardFighterName.left a");
+          const b = hasText(match, ".fightCardFighterName.right a");
+
+          return {
+            [a]: match
+              .querySelector(".fightCardFighterName.left a")
+              .getAttribute("href"),
+            [b]: match
+              .querySelector(".fightCardFighterName.right a")
+              .getAttribute("href")
+          };
+        })
+        .reduce((acc, fighters) => {
+          return { ...acc, ...fighters };
+        }, {});
+    });
+
+    const event = await new Event(this.page).main();
+    return { fighterLinks, event };
+  }
+
+  /**
+   * @method getProfiles
+   */
+  async getProfiles(fighterLinks) {
+    let fighters = {};
+
+    for (const [name, link] of Object.entries(fighterLinks)) {
+      await this.page.goto(`${this.url}${link}`);
+      const profile = await new FighterProfile(this.page).main();
+      fighters = { ...fighters, [name]: profile };
+      await this.page.waitFor(2000);
+    }
+
+    return fighters;
   }
 
   /**
@@ -145,11 +185,11 @@ class FightCenter {
     log("\nEvents:");
     log(this.events);
 
+    log("\nFighters:");
+    log(this.fighters);
+
     // log("\nMatches:");
     // log(this.matches);
-
-    // log("\nFighters:");
-    // log(this.fighters);
 
     // log("\nAffiliates:");
     // log(this.affiliates);
